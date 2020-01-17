@@ -1,8 +1,9 @@
-import { Resolver, Query, Mutation, Arg, ObjectType, Field, Ctx } from "type-graphql"
+import { Resolver, Query, Mutation, Arg, ObjectType, Field, Ctx, UseMiddleware } from "type-graphql"
 import { hash, compare } from 'bcryptjs'
 import { User } from "./entity/User"
 import { MyContext } from "./MyContext"
 import { createRefreshToken, createAccessToken } from "./auth"
+import { isAuth } from "./isAuth"
 
 @ObjectType()
 class LoginResponse {
@@ -15,6 +16,16 @@ export class UserResolver {
   @Query(() => String)
   hello() {
     return 'Hi!'
+  }
+
+  // Users that are authorize can access this route
+  @Query(() => String)
+  @UseMiddleware(isAuth)
+  bye(
+    @Ctx() {payload}: MyContext
+  ) {
+    console.log(payload)
+    return `Your user id is: ${payload!.userId}`
   }
 
   @Query(() => [User])
@@ -33,9 +44,9 @@ export class UserResolver {
     if (!user) {
       throw new Error('Could not find user')
     }
-    
+
     const valid = await compare(password, user.password)
-    
+
     if (!valid) {
       throw new Error('Bad password')
     }
