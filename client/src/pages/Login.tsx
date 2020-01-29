@@ -1,10 +1,9 @@
 import React, { useState } from 'react'
 import { RouteComponentProps } from 'react-router-dom'
 import { useLoginMutation } from '../generated/graphql'
+import { setAccessToken } from '../accessToken'
 
-interface  Props {
-
-}
+interface  Props { }
 
 export const Login: React.FC<RouteComponentProps> = ({ history }) => {
   const [email, setEmail] = useState('')
@@ -22,6 +21,11 @@ export const Login: React.FC<RouteComponentProps> = ({ history }) => {
         })
 
         console.log(response)
+
+        if (response && response.data) {
+          setAccessToken(response.data.login.accesstoken)
+        }
+        
         history.push('/')
       }}
     >
