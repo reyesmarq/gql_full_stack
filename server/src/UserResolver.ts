@@ -12,6 +12,8 @@ import { verify } from "jsonwebtoken"
 class LoginResponse {
   @Field()
   accesstoken: string
+  @Field(() => User)
+  user: User
 }
 
 @Resolver()
@@ -90,7 +92,8 @@ export class UserResolver {
     sendRefreshtoken(res, createRefreshToken(user))
 
     return {
-      accesstoken: createAccessToken(user)
+      accesstoken: createAccessToken(user),
+      user
     }
   }
 

@@ -6,7 +6,17 @@ interface Props { }
 
 export const Header: React.FC<Props> = () => {
   // network only, always request from server
-  const { data } = useMeQuery({fetchPolicy: 'network-only'})
+  const { data, loading } = useMeQuery({fetchPolicy: 'network-only'})
+  
+  let body: any = null
+
+  if (loading) {
+    body = null
+  } else if (data && data.me) {
+    body = <div>You are logged in as: {data.me.email}</div>
+  } else {
+    body = <div>Not logged in</div>
+  }
   
   return (
     <header>
@@ -22,11 +32,7 @@ export const Header: React.FC<Props> = () => {
       <div>
         <Link to="/bye">bye</Link>
       </div>
-      {
-        data && data.me
-          ? (<div>You are logged in as: {data.me.email}</div>)
-          : null
-      }
+      { body }
     </header>
   )
 }

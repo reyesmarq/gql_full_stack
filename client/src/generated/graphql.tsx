@@ -14,6 +14,7 @@ export type Scalars = {
 export type LoginResponse = {
    __typename?: 'LoginResponse',
   accesstoken: Scalars['String'],
+  user: User,
 };
 
 export type Mutation = {
@@ -81,6 +82,10 @@ export type LoginMutation = (
   & { login: (
     { __typename?: 'LoginResponse' }
     & Pick<LoginResponse, 'accesstoken'>
+    & { user: (
+      { __typename?: 'User' }
+      & Pick<User, 'id' | 'email'>
+    ) }
   ) }
 );
 
@@ -182,6 +187,10 @@ export const LoginDocument = gql`
     mutation Login($email: String!, $password: String!) {
   login(email: $email, password: $password) {
     accesstoken
+    user {
+      id
+      email
+    }
   }
 }
     `;
