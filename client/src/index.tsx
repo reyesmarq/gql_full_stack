@@ -1,13 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { ApolloProvider } from '@apollo/react-hooks'
-import { getAccessToken } from './accessToken';
+import { getAccessToken, setAccessToken } from './accessToken';
 import { App } from './App';
 import { ApolloClient } from 'apollo-client';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { HttpLink } from 'apollo-link-http';
 import { onError } from 'apollo-link-error';
 import { ApolloLink, Observable } from 'apollo-link';
+import { TokenRefreshLink } from 'apollo-link-token-refresh'
+import jwtDecode from 'jwt-decode'
 
 const cache = new InMemoryCache({});
 
@@ -42,6 +44,44 @@ const requestLink = new ApolloLink((operation, forward) =>
 
 const client = new ApolloClient({
   link: ApolloLink.from([
+    new TokenRefreshLink({
+      accessTokenField: 'accessToken',
+      isTokenValidOrUndefined: () => {
+        const token = getAccessToken()
+
+        if (!token) {
+          // the token is undefined
+          return true
+        }
+
+        try {
+          const { exp } = jwtDecode(token)
+          // If the current time is greater, that means the token has expired
+          if (Date.now() >= exp + 1000) {
+            // The token is not valid
+            return false
+          } else {
+            // The token is valid
+            return true
+          }
+        } catch (err) {
+          return false;
+        }
+      },
+      fetchAccessToken: () => {
+        return fetch('http://localhost:4000/refresh_token', {
+          method: 'post',
+          credentials: 'include'
+        })
+      },
+      handleFetch: accessToken => {
+        setAccessToken(accessToken)
+      },
+      handleError: err => {
+        console.warn('Your refresh token is invalid. Try to relogin');
+        console.log(err)
+      }
+    }),
     /**
      * this is going to alert if we get any graphql error
      */
